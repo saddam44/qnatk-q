@@ -1,6 +1,7 @@
 import { DynamicModule, Module, Global, Inject } from "@nestjs/common";
+import { EventEmitterModule } from "@nestjs/event-emitter";
 import { ModuleRef } from "@nestjs/core";
-// import { SequelizeModule } from "@nestjs/sequelize";
+import { SequelizeModule } from "@nestjs/sequelize";
 import { QnatkModuleOptions } from "./hooks/qnatk-module.options";
 import { HooksService } from "./hooks/hooks.service";
 import { AutoRegisterHooks } from "./hooks/auto-register.hook";
@@ -23,8 +24,8 @@ export class QnatkModule {
     return {
       module: QnatkModule,
       imports: [
-        // EventEmitterModule.forRoot(),
-        // SequelizeModule.forFeature(modelArray),
+        EventEmitterModule.forRoot(),
+        SequelizeModule.forFeature(modelArray),
         ...additionalImports,
       ],
       providers: [
@@ -37,7 +38,7 @@ export class QnatkModule {
         QnatkControllerService,
         ...additionalProviders,
       ],
-      exports: [HooksService, QnatkControllerService],
+      exports: [HooksService, EventEmitterModule, QnatkControllerService],
     };
   }
 
