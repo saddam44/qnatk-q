@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { Model, Sequelize } from 'sequelize-typescript';
-import { Op, Transaction } from 'sequelize';
-import { ValidationException } from './Exceptions/ValidationException';
-import { QnatkModel } from './dto/QnatkModel';
-import { ActionListDTO } from './dto/ActionListDTO';
+import { Injectable } from "@nestjs/common";
+import { Model, Sequelize } from "sequelize-typescript";
+import { Op, Transaction } from "sequelize";
+import { ValidationException } from "./Exceptions/ValidationException";
+import { QnatkModel } from "./dto/QnatkModel";
+import { ActionListDTO } from "./dto/ActionListDTO";
 
 @Injectable()
 export class QnatkService {
@@ -23,12 +23,12 @@ export class QnatkService {
         order.push([
           { model: sequelizeModel, as: sortByObject.as },
           sortField,
-          sortByDescending ? 'DESC' : 'ASC',
+          sortByDescending ? "DESC" : "ASC",
         ]);
       }
-    } else if (typeof sortBy === 'string') {
+    } else if (typeof sortBy === "string") {
       // Handle the regular case where sortBy is just a string
-      order.push([sortBy, sortByDescending ? 'DESC' : 'ASC']);
+      order.push([sortBy, sortByDescending ? "DESC" : "ASC"]);
     }
 
     let attributes = [];
@@ -68,10 +68,10 @@ export class QnatkService {
       opts = [opts];
     }
     return opts.map((inc: any) => {
-      if (typeof inc === 'string') {
+      if (typeof inc === "string") {
         return { model: this.sequelize.model(inc) };
       } else {
-        if (typeof inc.model === 'string') {
+        if (typeof inc.model === "string") {
           inc.model = this.sequelize.model(inc.model);
         }
         // Recursively sanitize nested options
@@ -125,7 +125,7 @@ export class QnatkService {
         return condition.map(sanitizeCondition); // Recursively apply to arrays
       } else if (
         condition &&
-        typeof condition === 'object' &&
+        typeof condition === "object" &&
         condition.constructor === Object
       ) {
         const sanitizedCondition = {};
@@ -173,7 +173,7 @@ export class QnatkService {
       return this.sequelize.model(baseModel).create(body, {
         transaction,
       });
-    } catch (err) {
+    } catch (err: any) {
       console.log(err);
       throw new ValidationException({
         Error: [err.message],
@@ -185,7 +185,7 @@ export class QnatkService {
     baseModel: string,
     action: ActionListDTO,
     data_user: any,
-    transaction?: Transaction,
+    transaction?: Transaction
   ) {
     const where = {};
     if (action.loadBy) {
@@ -205,12 +205,12 @@ export class QnatkService {
     baseModel: string,
     action: ActionListDTO,
     data_user: any,
-    transaction?: Transaction,
+    transaction?: Transaction
   ) {
     const where = {};
     if (action.loadBy) {
       where[action.loadBy] = data_user.data.records.map(
-        (record) => record[action.loadBy],
+        (record) => record[action.loadBy]
       );
     } else {
       throw new ValidationException({
