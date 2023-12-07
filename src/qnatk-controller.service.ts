@@ -38,17 +38,17 @@ export class QnatkControllerService {
                     transaction,
                 );
 
-                const created_data = await this.qnatkService.addNew(
+                const model_instance = await this.qnatkService.addNew(
                     baseModel,
-                    validated_data,
+                    validated_data.data,
                     transaction,
                 );
 
                 return await this.hooksService.triggerHooks(
                     `afterCreate:${baseModel}`,
                     {
-                        data: created_data,
-                        user,
+                        ...validated_data,
+                        modelInstance: model_instance,
                     },
                     transaction,
                 );
