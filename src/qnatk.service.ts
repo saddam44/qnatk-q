@@ -168,11 +168,12 @@ export class QnatkService {
 
     async addNew(baseModel: string, body: any, transaction: Transaction) {
         try {
-            return this.sequelize.model(baseModel).create(body, {
+            return await this.sequelize.model(baseModel).create(body, {
                 transaction,
             });
         } catch (err: any) {
-            console.log(err);
+            console.log('err', err);
+            // throw err;
             throw new ValidationException({
                 Error: [err.message],
             });
