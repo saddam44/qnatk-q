@@ -20,7 +20,7 @@ export class QnatkModule {
         options: QnatkModuleOptions,
         modelAndActions: {
             models: any[];
-            actions: Record<string, ActionListDTO[]>;
+            actions: Record<string, ActionListDTO>;
         } = {
             models: [],
             actions: {},

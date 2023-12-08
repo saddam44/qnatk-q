@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Sequelize } from 'sequelize-typescript';
 import { Op, Transaction } from 'sequelize';
 import { ValidationException } from './Exceptions/ValidationException';
-import { ActionListDTO } from './dto/ActionListDTO';
+import { ActionDTO, ActionListDTO } from './dto/ActionListDTO';
 
 @Injectable()
 export class QnatkService {
@@ -182,7 +182,7 @@ export class QnatkService {
 
     async findOneFormActionInfo(
         baseModel: string,
-        action: ActionListDTO,
+        action: ActionDTO,
         data_user: any,
         transaction?: Transaction,
     ) {
@@ -202,7 +202,7 @@ export class QnatkService {
 
     async findAllFormActionInfo(
         baseModel: string,
-        action: ActionListDTO,
+        action: ActionDTO,
         data_user: any,
         transaction?: Transaction,
     ) {
