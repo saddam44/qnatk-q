@@ -67,8 +67,8 @@ export class QnatkControllerService {
         files: Array<Express.Multer.File>,
         user: UserDTO,
     ) {
-        const final_data = await this.sequelize.transaction(
-            async (transaction) => {
+        const final_data = await this.sequelize
+            .transaction(async (transaction) => {
                 // console.log('files', files);
                 const validated_data = await this.hooksService.triggerHooks(
                     `beforeCreate:${baseModel}`,
@@ -96,8 +96,11 @@ export class QnatkControllerService {
                     },
                     transaction,
                 );
-            },
-        );
+            })
+            .catch((err) => {
+                console.log(err);
+                throw err;
+            });
         return {
             ...final_data,
             message: `Action executed successfully`,
