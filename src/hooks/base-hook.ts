@@ -26,6 +26,7 @@ export abstract class BaseHook implements HookInterface {
             await validateOrReject(dtoInstance);
             return dtoInstance;
         } catch (errors) {
+            console.log(errors);
             throw new ValidationException(
                 this.mapValidationErrors(errors as ValidationError[]),
             );
