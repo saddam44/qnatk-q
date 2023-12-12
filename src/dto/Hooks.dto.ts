@@ -51,7 +51,7 @@ export interface BulkActionExecuteParams<
 export interface BeforeHookParamsWithFiles<RecordDTO = any, UserDTO = any> {
     data: RecordDTO;
     user: UserDTO;
-    files: File[];
+    files: Array<Express.Multer.File>;
 }
 
 export interface AfterHookParams<
@@ -72,5 +72,5 @@ export interface AfterHookParamsWithFiles<
     data: RecordDTO;
     user: UserDTO;
     modelInstance: ModelType;
-    files: File[];
+    files: Array<Express.Multer.File>;
 }
