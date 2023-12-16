@@ -1,5 +1,5 @@
 import { Model } from 'sequelize-typescript';
-import { ActionListDTO } from './ActionListDTO';
+import { ActionDTO, ActionListDTO } from './ActionListDTO';
 
 export interface BeforeHookParams<DataDTO, UserDTO = any> {
     data: DataDTO;
@@ -8,7 +8,7 @@ export interface BeforeHookParams<DataDTO, UserDTO = any> {
 
 export interface BeforeActionExecuteParams<RecordDTO = any, UserDTO = any> {
     data: {
-        action: ActionListDTO;
+        action: ActionDTO;
         record: RecordDTO;
     };
     user: UserDTO;
@@ -20,7 +20,20 @@ export interface ActionExecuteParams<
     UserDTO = any,
 > {
     data: {
-        action: ActionListDTO;
+        action: ActionDTO;
+        record: RecordDTO;
+    };
+    user: UserDTO;
+    modelInstance: ModelType;
+}
+
+export interface AfterActionExecuteParams<
+    ModelType extends Model,
+    RecordDTO = any,
+    UserDTO = any,
+> {
+    data: {
+        action: ActionDTO;
         record: RecordDTO;
     };
     user: UserDTO;
@@ -29,7 +42,7 @@ export interface ActionExecuteParams<
 
 export interface BulkBeforeActionExecuteParams<RecordDTO = any, UserDTO = any> {
     data: {
-        action: ActionListDTO;
+        action: ActionDTO;
         records: RecordDTO;
     };
     user: UserDTO;
