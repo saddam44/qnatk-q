@@ -33,33 +33,37 @@ export class QnatkControllerService {
         user: UserDTO,
         transaction?: Transaction,
     ) {
-        const final_data = await this.sequelize.transaction(
-            async (transaction) => {
-                const validated_data = await this.hooksService.triggerHooks(
-                    `beforeCreate:${baseModel}`,
-                    {
-                        data,
-                        user,
-                    },
-                    transaction,
-                );
+        const execute = async (t: Transaction) => {
+            const validated_data = await this.hooksService.triggerHooks(
+                `beforeCreate:${baseModel}`,
+                { data, user },
+                t,
+            );
 
-                const model_instance = await this.qnatkService.addNew(
-                    baseModel,
-                    validated_data.data,
-                    transaction,
-                );
+            const model_instance = await this.qnatkService.addNew(
+                baseModel,
+                validated_data.data,
+                t,
+            );
 
-                return await this.hooksService.triggerHooks(
-                    `afterCreate:${baseModel}`,
-                    {
-                        ...validated_data,
-                        modelInstance: model_instance,
-                    },
-                    transaction,
-                );
-            },
-        );
+            return await this.hooksService.triggerHooks(
+                `afterCreate:${baseModel}`,
+                {
+                    ...validated_data,
+                    modelInstance: model_instance,
+                },
+                t,
+            );
+        };
+
+        let final_data;
+        if (transaction) {
+            // Use the existing transaction
+            final_data = await execute(transaction);
+        } else {
+            // Create a new transaction
+            final_data = await this.sequelize.transaction(execute);
+        }
 
         return {
             ...final_data,
@@ -72,41 +76,47 @@ export class QnatkControllerService {
         data: any,
         files: Array<Express.Multer.File>,
         user: UserDTO,
+        transaction?: Transaction, // Add an optional transaction parameter
     ) {
-        const final_data = await this.sequelize
-            .transaction(async (transaction) => {
-                // console.log('files', files);
-                const validated_data = await this.hooksService.triggerHooks(
-                    `beforeCreate:${baseModel}`,
-                    {
-                        data,
-                        files,
-                        user,
-                    },
-                    transaction,
-                );
+        const execute = async (t: Transaction) => {
+            const validated_data = await this.hooksService.triggerHooks(
+                `beforeCreate:${baseModel}`,
+                { data, files, user },
+                t,
+            );
 
-                console.log('validated_data', validated_data);
+            console.log('validated_data', validated_data);
 
-                const data_returned = await this.qnatkService.addNew(
-                    baseModel,
-                    validated_data.data,
-                    transaction,
-                );
+            const data_returned = await this.qnatkService.addNew(
+                baseModel,
+                validated_data.data,
+                t,
+            );
 
-                return await this.hooksService.triggerHooks(
-                    `afterCreate:${baseModel}`,
-                    {
-                        ...validated_data,
-                        modelInstance: data_returned,
-                    },
-                    transaction,
-                );
-            })
-            .catch((err) => {
-                console.log(err);
-                throw err;
-            });
+            return await this.hooksService.triggerHooks(
+                `afterCreate:${baseModel}`,
+                {
+                    ...validated_data,
+                    modelInstance: data_returned,
+                },
+                t,
+            );
+        };
+
+        let final_data;
+        if (transaction) {
+            // Use the existing transaction
+            final_data = await execute(transaction);
+        } else {
+            // Create a new transaction
+            final_data = await this.sequelize
+                .transaction(execute)
+                .catch((err) => {
+                    console.log(err);
+                    throw err;
+                });
+        }
+
         return {
             ...final_data,
             message: `Action executed successfully`,
@@ -118,48 +128,51 @@ export class QnatkControllerService {
         action: any,
         data: any,
         user: UserDTO,
+        transaction?: Transaction, // Add an optional transaction parameter
     ) {
-        const final_data = await this.sequelize.transaction(
-            async (transaction) => {
-                // console.log('files', files);
-                console.log('before execute validated_data', data);
-                const validated_data = await this.hooksService.triggerHooks(
-                    `before:${baseModel}:${action}`,
-                    {
-                        data,
-                        user,
-                    },
-                    transaction,
+        const execute = async (t: Transaction) => {
+            console.log('before execute validated_data', data);
+
+            const validated_data = await this.hooksService.triggerHooks(
+                `before:${baseModel}:${action}`,
+                { data, user },
+                t,
+            );
+
+            const model_instance =
+                await this.qnatkService.findOneFormActionInfo(
+                    baseModel,
+                    validated_data.data.action,
+                    validated_data,
+                    t,
                 );
 
-                const model_instance =
-                    await this.qnatkService.findOneFormActionInfo(
-                        baseModel,
-                        validated_data.data.action,
-                        validated_data,
-                        transaction,
-                    );
+            const executedData = await this.hooksService.triggerHooks(
+                `execute:${baseModel}:${action}`,
+                {
+                    ...validated_data,
+                    modelInstance: model_instance,
+                },
+                t,
+            );
 
-                const executedData = await this.hooksService.triggerHooks(
-                    `execute:${baseModel}:${action}`,
-                    {
-                        ...validated_data,
-                        modelInstance: model_instance,
-                    },
-                    transaction,
-                );
+            return await this.hooksService.triggerHooks(
+                `after:${baseModel}:${action}`,
+                {
+                    ...executedData,
+                },
+                t,
+            );
+        };
 
-                return await this.hooksService.triggerHooks(
-                    `after:${baseModel}:${action}`,
-                    {
-                        // ...validated_data,
-                        ...executedData,
-                        // modelInstance: executedData,
-                    },
-                    transaction,
-                );
-            },
-        );
+        let final_data;
+        if (transaction) {
+            // Use the existing transaction
+            final_data = await execute(transaction);
+        } else {
+            // Create a new transaction
+            final_data = await this.sequelize.transaction(execute);
+        }
 
         return {
             ...final_data,
@@ -177,48 +190,52 @@ export class QnatkControllerService {
         action: any,
         data: any,
         user: UserDTO,
+        transaction?: Transaction, // Add an optional transaction parameter
     ) {
-        const final_data = await this.sequelize.transaction(
-            async (transaction) => {
-                // console.log('files', files);
-                const validated_data = await this.hooksService.triggerHooks(
-                    `before:${baseModel}:bulk-${action}`,
-                    {
-                        data,
-                        user,
-                    },
-                    transaction,
+        const execute = async (t: Transaction) => {
+            const validated_data = await this.hooksService.triggerHooks(
+                `before:${baseModel}:bulk-${action}`,
+                { data, user },
+                t,
+            );
+
+            const model_instances =
+                await this.qnatkService.findAllFormActionInfo(
+                    baseModel,
+                    validated_data.data.action,
+                    validated_data,
+                    t,
                 );
 
-                const model_instance =
-                    await this.qnatkService.findAllFormActionInfo(
-                        baseModel,
-                        validated_data.data.action,
-                        validated_data,
-                        transaction,
-                    );
+            console.log('model_instances', model_instances);
 
-                console.log('model_instance', model_instance);
+            const executedData = await this.hooksService.triggerHooks(
+                `execute:${baseModel}:bulk-${action}`,
+                {
+                    ...validated_data,
+                    modelInstances: model_instances,
+                },
+                t,
+            );
 
-                const executedData = await this.hooksService.triggerHooks(
-                    `execute:${baseModel}:bulk-${action}`,
-                    {
-                        ...validated_data,
-                        modelInstances: model_instance,
-                    },
-                    transaction,
-                );
+            return await this.hooksService.triggerHooks(
+                `after:${baseModel}:bulk-${action}`,
+                {
+                    ...validated_data,
+                    modelInstance: executedData,
+                },
+                t,
+            );
+        };
 
-                return await this.hooksService.triggerHooks(
-                    `after:${baseModel}:bulk-${action}`,
-                    {
-                        ...validated_data,
-                        modelInstance: executedData,
-                    },
-                    transaction,
-                );
-            },
-        );
+        let final_data;
+        if (transaction) {
+            // Use the existing transaction
+            final_data = await execute(transaction);
+        } else {
+            // Create a new transaction
+            final_data = await this.sequelize.transaction(execute);
+        }
 
         return {
             ...final_data,
@@ -237,41 +254,47 @@ export class QnatkControllerService {
         primaryField: string,
         data: any,
         user: UserDTO,
+        transaction?: Transaction, // Add an optional transaction parameter
     ) {
-        const final_data = await this.sequelize.transaction(
-            async (transaction) => {
-                const data_with_id = {
-                    ...data,
-                    primaryKey: primaryKey,
-                    primaryField: primaryField,
-                };
-                const validated_data = await this.hooksService.triggerHooks(
-                    `beforeEdit:${baseModel}`,
-                    {
-                        data: data_with_id,
-                        user,
-                    },
-                    transaction,
-                );
+        const execute = async (t: Transaction) => {
+            const data_with_id = {
+                ...data,
+                primaryKey: primaryKey,
+                primaryField: primaryField,
+            };
+            const validated_data = await this.hooksService.triggerHooks(
+                `beforeEdit:${baseModel}`,
+                { data: data_with_id, user },
+                t,
+            );
 
-                const model_instance = await this.qnatkService.updateByPk(
-                    baseModel,
-                    primaryKey,
-                    primaryField,
-                    data,
-                    transaction,
-                );
+            const model_instance = await this.qnatkService.updateByPk(
+                baseModel,
+                primaryKey,
+                primaryField,
+                data,
+                t,
+            );
 
-                return await this.hooksService.triggerHooks(
-                    `afterEdit:${baseModel}`,
-                    {
-                        ...validated_data,
-                        modelInstance: model_instance,
-                    },
-                    transaction,
-                );
-            },
-        );
+            return await this.hooksService.triggerHooks(
+                `afterEdit:${baseModel}`,
+                {
+                    ...validated_data,
+                    modelInstance: model_instance,
+                },
+                t,
+            );
+        };
+
+        let final_data;
+        if (transaction) {
+            // Use the existing transaction
+            final_data = await execute(transaction);
+        } else {
+            // Create a new transaction
+            final_data = await this.sequelize.transaction(execute);
+        }
+
         return {
             ...final_data,
             modelInstance: final_data.modelInstance,
