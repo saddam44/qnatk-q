@@ -21,7 +21,16 @@ export abstract class BaseHook implements HookInterface {
         data: T,
         DTOClass: new () => T,
     ): Promise<T> {
-        const dtoInstance = plainToInstance(DTOClass, data);
+        let dtoInstance;
+
+        // Check if data is already an instance of DTOClass
+        if (data instanceof DTOClass) {
+            dtoInstance = data;
+        } else {
+            // Convert plain data to DTO instance
+            dtoInstance = plainToInstance(DTOClass, data);
+        }
+
         try {
             await validateOrReject(dtoInstance);
             return dtoInstance;
