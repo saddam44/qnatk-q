@@ -133,34 +133,29 @@ export class QnatkControllerService {
         const execute = async (t: Transaction) => {
             console.log('before execute validated_data', data);
 
-            const validated_data = await this.hooksService.triggerHooks(
-                `before:${baseModel}:${action}`,
-                { data, user },
-                t,
-            );
-
             const model_instance =
                 await this.qnatkService.findOneFormActionInfo(
                     baseModel,
-                    validated_data.data.action,
-                    validated_data,
+                    data.action,
+                    data.record,
                     t,
                 );
 
+            const validated_data = await this.hooksService.triggerHooks(
+                `before:${baseModel}:${action}`,
+                { data, user, modelInstance: model_instance },
+                t,
+            );
+
             const executedData = await this.hooksService.triggerHooks(
                 `execute:${baseModel}:${action}`,
-                {
-                    ...validated_data,
-                    modelInstance: model_instance,
-                },
+                validated_data,
                 t,
             );
 
             return await this.hooksService.triggerHooks(
                 `after:${baseModel}:${action}`,
-                {
-                    ...executedData,
-                },
+                executedData,
                 t,
             );
         };

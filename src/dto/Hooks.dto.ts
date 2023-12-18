@@ -6,12 +6,17 @@ export interface BeforeHookParams<DataDTO, UserDTO = any> {
     user: UserDTO;
 }
 
-export interface BeforeActionExecuteParams<RecordDTO = any, UserDTO = any> {
+export interface BeforeActionExecuteParams<
+    ModelType extends Model,
+    RecordDTO = any,
+    UserDTO = any,
+> {
     data: {
         action: ActionDTO;
         record: RecordDTO;
     };
     user: UserDTO;
+    modelInstance: ModelType;
 }
 
 export interface ActionExecuteParams<
