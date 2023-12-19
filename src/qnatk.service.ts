@@ -119,25 +119,64 @@ export class QnatkService {
             $notBetween: Op.notBetween,
             $and: Op.and,
             $or: Op.or,
+            $fullText: 'fullText',
 
             // ... other operators
         };
 
-        function sanitizeCondition(condition) {
+        function sanitizeCondition(condition, sequelize) {
             if (Array.isArray(condition)) {
-                return condition.map(sanitizeCondition); // Recursively apply to arrays
+                return condition.map((c) => sanitizeCondition(c, sequelize));
             } else if (
                 condition &&
                 typeof condition === 'object' &&
                 condition.constructor === Object
             ) {
                 const sanitizedCondition = {};
+
+                // Handle full-text search if present in this level of condition
+                if (condition.$fullText) {
+                    const fullTextConditions = [];
+                    const fullTextArray = Array.isArray(condition.$fullText)
+                        ? condition.$fullText
+                        : [condition.$fullText];
+
+                    fullTextArray.forEach((ftCondition) => {
+                        if (ftCondition.table && ftCondition.query) {
+                            const fields = ftCondition.fields
+                                .map((field) => `${ftCondition.table}.${field}`)
+                                .join(', ');
+                            const matchAgainst = sequelize.literal(
+                                `MATCH(${fields}) AGAINST('"${ftCondition.query}"' IN BOOLEAN MODE)`,
+                            );
+                            fullTextConditions.push(matchAgainst);
+                        }
+                    });
+
+                    // Delete the $fullText key to avoid processing it as a standard operator
+                    delete condition.$fullText;
+
+                    // Combine full-text conditions with other sanitized conditions in this level
+                    if (fullTextConditions.length > 0) {
+                        sanitizedCondition[Op.and] = sanitizedCondition[Op.and]
+                            ? [
+                                  ...sanitizedCondition[Op.and],
+                                  ...fullTextConditions,
+                              ]
+                            : fullTextConditions;
+                    }
+                }
+
+                // Recursively apply to nested objects/operators
                 for (const [key, value] of Object.entries(condition)) {
                     if (key in sequelizeOperators) {
                         sanitizedCondition[sequelizeOperators[key]] =
-                            sanitizeCondition(value); // Recursively apply to nested operators
+                            sanitizeCondition(value, sequelize);
                     } else {
-                        sanitizedCondition[key] = sanitizeCondition(value); // Recursively apply to nested objects
+                        sanitizedCondition[key] = sanitizeCondition(
+                            value,
+                            sequelize,
+                        );
                     }
                 }
                 return sanitizedCondition;
@@ -145,7 +184,7 @@ export class QnatkService {
             return condition; // Base case: the condition is a primitive or non-plain object, return as-is
         }
 
-        return sanitizeCondition(where);
+        return sanitizeCondition(where, this.sequelize);
     }
 
     findAll(baseModel: string, options?: any) {
