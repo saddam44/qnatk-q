@@ -244,4 +244,27 @@ export class QnatkService {
             });
         }
     }
+
+    async deleteByPk(
+        baseModel: string,
+        primaryKey: string | number,
+        primaryField: string,
+        //body: any,
+        transaction: Transaction,
+    ) {
+        try {
+            return await this.sequelize.model(baseModel).destroy({
+                where: {
+                    [primaryField]: primaryKey,
+                },
+                transaction,
+            });
+        } catch (err: any) {
+            console.log('err', err);
+            // throw err;
+            throw new ValidationException({
+                Error: [err.message],
+            });
+        }
+    }
 }

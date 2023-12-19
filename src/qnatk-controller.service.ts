@@ -296,4 +296,58 @@ export class QnatkControllerService {
             message: `Action Update executed successfully`,
         };
     }
+
+    async deleteByPk<UserDTO = any>(
+        baseModel: string,
+        primaryKey: string | number,
+        primaryField: string,
+        //data: any,
+        user: UserDTO,
+        transaction?: Transaction, // Add an optional transaction parameter
+    ) {
+        const execute = async (t: Transaction) => {
+            const data_with_id = {
+                //...data,
+                primaryKey: primaryKey,
+                primaryField: primaryField,
+            };
+            const validated_data = await this.hooksService.triggerHooks(
+                `beforeDelete:${baseModel}`,
+                { data: data_with_id, user },
+                t,
+            );
+
+            const model_instance = await this.qnatkService.deleteByPk(
+                baseModel,
+                primaryKey,
+                primaryField,
+                // data,
+                t,
+            );
+
+            return await this.hooksService.triggerHooks(
+                `afterDelete:${baseModel}`,
+                {
+                    ...validated_data,
+                    modelInstance: model_instance,
+                },
+                t,
+            );
+        };
+
+        let final_data;
+        if (transaction) {
+            // Use the existing transaction
+            final_data = await execute(transaction);
+        } else {
+            // Create a new transaction
+            final_data = await this.sequelize.transaction(execute);
+        }
+
+        return {
+            ...final_data,
+            modelInstance: final_data.modelInstance,
+            message: `Action Delete executed successfully`,
+        };
+    }
 }
