@@ -222,21 +222,32 @@ export class QnatkService {
     async findOneFormActionInfo(
         baseModel: string,
         action: Partial<ActionDTO>,
-        record: any,
+        data: any,
         transaction?: Transaction,
     ) {
         const where = {};
         if (action.loadBy) {
-            where[action.loadBy] = record[action.loadBy];
+            where[action.loadBy] = data[action.loadBy];
         } else {
             throw new ValidationException({
                 Error: [`loadBy not found`],
             });
         }
-        return await this.sequelize.model(baseModel).findOne({
+        const model = await this.sequelize.model(baseModel).findOne({
             where,
             transaction,
         });
+
+        if (!model)
+            throw new ValidationException({
+                Error: [
+                    `Record not found for model ${baseModel} with ${JSON.stringify(
+                        where,
+                    )}`,
+                ],
+            });
+
+        return model;
     }
 
     async findAllFormActionInfo(

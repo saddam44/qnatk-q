@@ -11,10 +11,8 @@ export interface BeforeActionExecuteParams<
     RecordDTO = any,
     UserDTO = any,
 > {
-    data: {
-        action: ActionDTO;
-        record: RecordDTO;
-    };
+    action: ActionDTO;
+    data: RecordDTO;
     user: UserDTO;
     modelInstance: ModelType;
 }
@@ -24,10 +22,8 @@ export interface ActionExecuteParams<
     RecordDTO = any,
     UserDTO = any,
 > {
-    data: {
-        action: ActionDTO;
-        record: RecordDTO;
-    };
+    action: ActionDTO;
+    data: RecordDTO;
     user: UserDTO;
     modelInstance: ModelType;
 }
@@ -37,19 +33,15 @@ export interface AfterActionExecuteParams<
     RecordDTO = any,
     UserDTO = any,
 > {
-    data: {
-        action: ActionDTO;
-        record: RecordDTO;
-    };
+    action: ActionDTO;
+    data: RecordDTO;
     user: UserDTO;
     modelInstance: ModelType;
 }
 
 export interface BulkBeforeActionExecuteParams<RecordDTO = any, UserDTO = any> {
-    data: {
-        action: ActionDTO;
-        records: RecordDTO;
-    };
+    action: ActionDTO;
+    data: RecordDTO;
     user: UserDTO;
 }
 
@@ -58,10 +50,8 @@ export interface BulkActionExecuteParams<
     RecordDTO = any,
     UserDTO = any,
 > {
-    data: {
-        action: ActionListDTO;
-        records: RecordDTO;
-    };
+    action: ActionDTO;
+    data: RecordDTO;
     user: UserDTO;
     modelInstances: ModelType;
 }

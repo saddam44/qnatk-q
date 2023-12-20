@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Model, Sequelize } from 'sequelize-typescript';
 import { QnatkService } from './qnatk.service';
 import { HooksService } from './hooks/hooks.service';
 import { QnatkListDTO } from './dto/QnatkListDTO';
 import { Transaction } from 'sequelize';
-import { ActionDTO } from './dto/ActionListDTO';
+import { ActionListDTO } from './dto/ActionListDTO';
 
 @Injectable()
 export class QnatkControllerService {
@@ -12,6 +12,7 @@ export class QnatkControllerService {
         private readonly qnatkService: QnatkService,
         private readonly hooksService: HooksService,
         private sequelize: Sequelize,
+        @Inject('MODEL_ACTIONS') private modelActions: ActionListDTO,
     ) {}
 
     async list(
@@ -124,27 +125,40 @@ export class QnatkControllerService {
         };
     }
 
-    async executeAction<UserDTO = any>(
+    async executeAction<UserDTO>(
         baseModel: string,
         action: string,
-        data: { action: Partial<ActionDTO>; record: any },
+        data: any,
         user: UserDTO,
         transaction?: Transaction, // Add an optional transaction parameter
     ) {
+        console.log(this.modelActions[baseModel]);
+        const actionObject = this.modelActions[baseModel]?.[action];
         const execute = async (t: Transaction) => {
             console.log('before execute validated_data', data);
+
+            if (!actionObject) {
+                throw new Error(
+                    `Action ${action} not found for model ${baseModel}`,
+                );
+            }
 
             const model_instance =
                 await this.qnatkService.findOneFormActionInfo(
                     baseModel,
-                    data.action,
-                    data.record,
+                    actionObject,
+                    data,
                     t,
                 );
 
             const validated_data = await this.hooksService.triggerHooks(
                 `before:${baseModel}:${action}`,
-                { data, user, modelInstance: model_instance },
+                {
+                    action: actionObject,
+                    data,
+                    user,
+                    modelInstance: model_instance,
+                },
                 t,
             );
 
@@ -172,7 +186,7 @@ export class QnatkControllerService {
 
         return {
             ...final_data,
-            modelInstance: data.action.returnModel
+            modelInstance: actionObject.returnModel
                 ? final_data.modelInstance
                 : undefined,
             data: undefined,
