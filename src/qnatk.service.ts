@@ -221,7 +221,7 @@ export class QnatkService {
 
     async findOneFormActionInfo(
         baseModel: string,
-        action: ActionDTO,
+        action: Partial<ActionDTO>,
         record: any,
         transaction?: Transaction,
     ) {

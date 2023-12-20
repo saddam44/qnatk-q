@@ -4,6 +4,7 @@ import { QnatkService } from './qnatk.service';
 import { HooksService } from './hooks/hooks.service';
 import { QnatkListDTO } from './dto/QnatkListDTO';
 import { Transaction } from 'sequelize';
+import { ActionDTO } from './dto/ActionListDTO';
 
 @Injectable()
 export class QnatkControllerService {
@@ -125,8 +126,8 @@ export class QnatkControllerService {
 
     async executeAction<UserDTO = any>(
         baseModel: string,
-        action: any,
-        data: any,
+        action: string,
+        data: { action: Partial<ActionDTO>; record: any },
         user: UserDTO,
         transaction?: Transaction, // Add an optional transaction parameter
     ) {
