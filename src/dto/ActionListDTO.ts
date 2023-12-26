@@ -1,11 +1,4 @@
-import {
-    IsString,
-    IsNotEmpty,
-    ValidateNested,
-    IsObject,
-    IsArray,
-    IsOptional,
-} from 'class-validator';
+import { IsString, IsNotEmpty, ValidateNested, IsObject, IsArray, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class UIOptionsDTO {
@@ -76,6 +69,10 @@ class LayoutRow {
 export class ActionDTO {
     @IsNotEmpty()
     name: string;
+
+    @IsOptional()
+    @IsString()
+    baseModel?: string;
 
     @IsNotEmpty()
     label: string;
