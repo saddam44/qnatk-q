@@ -15,10 +15,7 @@ export class QnatkControllerService {
         @Inject('MODEL_ACTIONS') private modelActions: ActionListDTO,
     ) {}
 
-    async list(
-        baseModel: string,
-        body: QnatkListDTO,
-    ): Promise<Model<any, any>[]> {
+    async list(baseModel: string, body: QnatkListDTO): Promise<Model<any, any>[]> {
         return await this.qnatkService.findAll(baseModel, body);
     }
 
@@ -29,24 +26,11 @@ export class QnatkControllerService {
         };
     }
 
-    async addNew<UserDTO = any>(
-        baseModel: string,
-        data: any,
-        user: UserDTO,
-        transaction?: Transaction,
-    ) {
+    async addNew<UserDTO = any>(baseModel: string, data: any, user: UserDTO, transaction?: Transaction) {
         const execute = async (t: Transaction) => {
-            const validated_data = await this.hooksService.triggerHooks(
-                `beforeCreate:${baseModel}`,
-                { data, user },
-                t,
-            );
+            const validated_data = await this.hooksService.triggerHooks(`beforeCreate:${baseModel}`, { data, user }, t);
 
-            const model_instance = await this.qnatkService.addNew(
-                baseModel,
-                validated_data.data,
-                t,
-            );
+            const model_instance = await this.qnatkService.addNew(baseModel, validated_data.data, t);
 
             return await this.hooksService.triggerHooks(
                 `afterCreate:${baseModel}`,
@@ -89,11 +73,7 @@ export class QnatkControllerService {
 
             console.log('validated_data', validated_data);
 
-            const data_returned = await this.qnatkService.addNew(
-                baseModel,
-                validated_data.data,
-                t,
-            );
+            const data_returned = await this.qnatkService.addNew(baseModel, validated_data.data, t);
 
             return await this.hooksService.triggerHooks(
                 `afterCreate:${baseModel}`,
@@ -111,12 +91,10 @@ export class QnatkControllerService {
             final_data = await execute(transaction);
         } else {
             // Create a new transaction
-            final_data = await this.sequelize
-                .transaction(execute)
-                .catch((err) => {
-                    console.log(err);
-                    throw err;
-                });
+            final_data = await this.sequelize.transaction(execute).catch((err) => {
+                console.log(err);
+                throw err;
+            });
         }
 
         return {
@@ -138,18 +116,10 @@ export class QnatkControllerService {
             console.log('before execute validated_data', data);
 
             if (!actionObject) {
-                throw new Error(
-                    `Action ${action} not found for model ${baseModel}`,
-                );
+                throw new Error(`Action ${action} not found for model ${baseModel}`);
             }
 
-            const model_instance =
-                await this.qnatkService.findOneFormActionInfo(
-                    baseModel,
-                    actionObject,
-                    data,
-                    t,
-                );
+            const model_instance = await this.qnatkService.findOneFormActionInfo(baseModel, actionObject, data, t);
 
             const validated_data = await this.hooksService.triggerHooks(
                 `before:${baseModel}:${action}`,
@@ -168,11 +138,7 @@ export class QnatkControllerService {
                 t,
             );
 
-            return await this.hooksService.triggerHooks(
-                `after:${baseModel}:${action}`,
-                executedData,
-                t,
-            );
+            return await this.hooksService.triggerHooks(`after:${baseModel}:${action}`, executedData, t);
         };
 
         let final_data;
@@ -186,9 +152,7 @@ export class QnatkControllerService {
 
         return {
             ...final_data,
-            modelInstance: actionObject.returnModel
-                ? final_data.modelInstance
-                : undefined,
+            modelInstance: actionObject.returnModel ? final_data.modelInstance : undefined,
             data: undefined,
             user: undefined,
             message: `Action ${action} executed successfully`,
@@ -209,13 +173,12 @@ export class QnatkControllerService {
                 t,
             );
 
-            const model_instances =
-                await this.qnatkService.findAllFormActionInfo(
-                    baseModel,
-                    validated_data.data.action,
-                    validated_data,
-                    t,
-                );
+            const model_instances = await this.qnatkService.findAllFormActionInfo(
+                baseModel,
+                validated_data.data.action,
+                validated_data,
+                t,
+            );
 
             console.log('model_instances', model_instances);
 
@@ -249,9 +212,7 @@ export class QnatkControllerService {
 
         return {
             ...final_data,
-            modelInstance: data.action.returnModel
-                ? final_data.modelInstance
-                : undefined,
+            modelInstance: data.action.returnModel ? final_data.modelInstance : undefined,
             data: undefined,
             user: undefined,
             message: `Action ${action} executed successfully`,
@@ -278,13 +239,7 @@ export class QnatkControllerService {
                 t,
             );
 
-            const model_instance = await this.qnatkService.updateByPk(
-                baseModel,
-                primaryKey,
-                primaryField,
-                data,
-                t,
-            );
+            const model_instance = await this.qnatkService.updateByPk(baseModel, primaryKey, primaryField, data, t);
 
             return await this.hooksService.triggerHooks(
                 `afterEdit:${baseModel}`,
