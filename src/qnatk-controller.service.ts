@@ -110,10 +110,10 @@ export class QnatkControllerService {
         user: UserDTO,
         transaction?: Transaction, // Add an optional transaction parameter
     ) {
-        console.log(this.modelActions[baseModel]);
+        // console.log(this.modelActions[baseModel]);
         const actionObject = this.modelActions[baseModel]?.[action];
         const execute = async (t: Transaction) => {
-            console.log('before execute validated_data', data);
+            // console.log('before execute validated_data', data);
 
             if (!actionObject) {
                 throw new Error(`Action ${action} not found for model ${baseModel}`);
@@ -147,7 +147,18 @@ export class QnatkControllerService {
             final_data = await execute(transaction);
         } else {
             // Create a new transaction
-            final_data = await this.sequelize.transaction(execute);
+            await this.hooksService.triggerHooks(
+                `beforeTransaction:${baseModel}:${action}`,
+                {
+                    action: actionObject,
+                    data,
+                    user,
+                },
+                null,
+            );
+            final_data = await this.sequelize
+                .transaction(execute)
+                .catch((err) => console.log('Rolled back with ', err));
         }
 
         return {
