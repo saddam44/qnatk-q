@@ -7,28 +7,21 @@ import { HookInterface } from './hook.interface';
 import { ModuleRef } from '@nestjs/core';
 
 async function importHooksFromDirectory(directoryPath: string): Promise<any[]> {
+    console.log('importHooksFromDirectory', directoryPath);
     let hookFiles = [];
     const files = fs.readdirSync(directoryPath, { withFileTypes: true });
     for (const file of files) {
         const resolvedPath = path.resolve(directoryPath, file.name);
         if (file.isDirectory()) {
-            hookFiles = [
-                ...hookFiles,
-                ...(await importHooksFromDirectory(resolvedPath)),
-            ];
-        } else if (file.name.endsWith('.service.hook.js')) {
+            hookFiles = [...hookFiles, ...(await importHooksFromDirectory(resolvedPath))];
+        } else if (file.name.endsWith('.service.hook.js') || file.name.endsWith('.service.hook.ts')) {
             hookFiles.push(resolvedPath);
         }
     }
-
     return hookFiles;
 }
 
-export async function AutoRegisterHooks(
-    moduleRef: ModuleRef,
-    hooksService: HooksService,
-    directoryPath: string,
-) {
+export async function AutoRegisterHooks(moduleRef: ModuleRef, hooksService: HooksService, directoryPath: string) {
     const hookFilePaths = await importHooksFromDirectory(directoryPath);
     console.log('hookFilePaths', hookFilePaths);
 
@@ -40,10 +33,7 @@ export async function AutoRegisterHooks(
                 if (eventPattern) {
                     const HookType: Type<any> = exported as Type<any>;
                     const instance = await moduleRef.create(HookType);
-                    hooksService.registerHook(
-                        eventPattern,
-                        instance as HookInterface,
-                    );
+                    hooksService.registerHook(eventPattern, instance as HookInterface);
                 }
             }
         }
