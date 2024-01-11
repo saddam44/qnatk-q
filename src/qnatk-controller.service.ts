@@ -65,13 +65,7 @@ export class QnatkControllerService {
         transaction?: Transaction, // Add an optional transaction parameter
     ) {
         const execute = async (t: Transaction) => {
-            const validated_data = await this.hooksService.triggerHooks(
-                `beforeCreate:${baseModel}`,
-                { data, files, user },
-                t,
-            );
-
-            console.log('validated_data', validated_data);
+            const validated_data = await this.hooksService.triggerHooks(`beforeCreate:${baseModel}`, { data, files, user }, t);
 
             const data_returned = await this.qnatkService.addNew(baseModel, validated_data.data, t);
 
@@ -132,11 +126,7 @@ export class QnatkControllerService {
                 t,
             );
 
-            const executedData = await this.hooksService.triggerHooks(
-                `execute:${baseModel}:${action}`,
-                validated_data,
-                t,
-            );
+            const executedData = await this.hooksService.triggerHooks(`execute:${baseModel}:${action}`, validated_data, t);
 
             return await this.hooksService.triggerHooks(`after:${baseModel}:${action}`, executedData, t);
         };
@@ -156,9 +146,8 @@ export class QnatkControllerService {
                 },
                 null,
             );
-            final_data = await this.sequelize
-                .transaction(execute)
-                .catch((err) => console.log('Rolled back with ', err));
+            final_data = await this.sequelize.transaction(execute);
+            // .catch((err) => console.log('Rolled back with ', err));
         }
 
         return {
@@ -178,18 +167,9 @@ export class QnatkControllerService {
         transaction?: Transaction, // Add an optional transaction parameter
     ) {
         const execute = async (t: Transaction) => {
-            const validated_data = await this.hooksService.triggerHooks(
-                `before:${baseModel}:bulk-${action}`,
-                { data, user },
-                t,
-            );
+            const validated_data = await this.hooksService.triggerHooks(`before:${baseModel}:bulk-${action}`, { data, user }, t);
 
-            const model_instances = await this.qnatkService.findAllFormActionInfo(
-                baseModel,
-                validated_data.data.action,
-                validated_data,
-                t,
-            );
+            const model_instances = await this.qnatkService.findAllFormActionInfo(baseModel, validated_data.data.action, validated_data, t);
 
             console.log('model_instances', model_instances);
 
@@ -244,11 +224,7 @@ export class QnatkControllerService {
                 primaryKey: primaryKey,
                 primaryField: primaryField,
             };
-            const validated_data = await this.hooksService.triggerHooks(
-                `beforeEdit:${baseModel}`,
-                { data: data_with_id, user },
-                t,
-            );
+            const validated_data = await this.hooksService.triggerHooks(`beforeEdit:${baseModel}`, { data: data_with_id, user }, t);
 
             const model_instance = await this.qnatkService.updateByPk(baseModel, primaryKey, primaryField, data, t);
 
@@ -292,11 +268,7 @@ export class QnatkControllerService {
                 primaryKey: primaryKey,
                 primaryField: primaryField,
             };
-            const validated_data = await this.hooksService.triggerHooks(
-                `beforeDelete:${baseModel}`,
-                { data: data_with_id, user },
-                t,
-            );
+            const validated_data = await this.hooksService.triggerHooks(`beforeDelete:${baseModel}`, { data: data_with_id, user }, t);
 
             const model_instance = await this.qnatkService.deleteByPk(
                 baseModel,

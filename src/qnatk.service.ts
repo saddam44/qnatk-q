@@ -13,8 +13,7 @@ export class QnatkService {
     ) {}
 
     private sanitizeOptions(options: any) {
-        const { limit, offset, sortBy, sortByDescending, ...modelOptions } =
-            options;
+        const { limit, offset, sortBy, sortByDescending, ...modelOptions } = options;
 
         const order = [];
 
@@ -23,11 +22,7 @@ export class QnatkService {
             const [sortByObject, sortField] = sortBy;
             if (sortByObject.model && sortField) {
                 const sequelizeModel = this.sequelize.model(sortByObject.model);
-                order.push([
-                    { model: sequelizeModel, as: sortByObject.as },
-                    sortField,
-                    sortByDescending ? 'DESC' : 'ASC',
-                ]);
+                order.push([{ model: sequelizeModel, as: sortByObject.as }, sortField, sortByDescending ? 'DESC' : 'ASC']);
             }
         } else if (typeof sortBy === 'string') {
             // Handle the regular case where sortBy is just a string
@@ -55,7 +50,7 @@ export class QnatkService {
             limit,
             offset,
             order,
-            attributes,
+            attributes: attributes.length > 0 ? attributes : undefined,
             where: this.sanitizeWhere(where),
             include: this.sanitizeRecursiveIncludes(modelOptions.include),
         };
@@ -127,28 +122,18 @@ export class QnatkService {
         function sanitizeCondition(condition, sequelize) {
             if (Array.isArray(condition)) {
                 return condition.map((c) => sanitizeCondition(c, sequelize));
-            } else if (
-                condition &&
-                typeof condition === 'object' &&
-                condition.constructor === Object
-            ) {
+            } else if (condition && typeof condition === 'object' && condition.constructor === Object) {
                 const sanitizedCondition = {};
 
                 // Handle full-text search if present in this level of condition
                 if (condition.$fullText) {
                     const fullTextConditions = [];
-                    const fullTextArray = Array.isArray(condition.$fullText)
-                        ? condition.$fullText
-                        : [condition.$fullText];
+                    const fullTextArray = Array.isArray(condition.$fullText) ? condition.$fullText : [condition.$fullText];
 
                     fullTextArray.forEach((ftCondition) => {
                         if (ftCondition.table && ftCondition.query) {
-                            const fields = ftCondition.fields
-                                .map((field) => `${ftCondition.table}.${field}`)
-                                .join(', ');
-                            const matchAgainst = sequelize.literal(
-                                `MATCH(${fields}) AGAINST('"${ftCondition.query}"' IN BOOLEAN MODE)`,
-                            );
+                            const fields = ftCondition.fields.map((field) => `${ftCondition.table}.${field}`).join(', ');
+                            const matchAgainst = sequelize.literal(`MATCH(${fields}) AGAINST('"${ftCondition.query}"' IN BOOLEAN MODE)`);
                             fullTextConditions.push(matchAgainst);
                         }
                     });
@@ -158,25 +143,16 @@ export class QnatkService {
 
                     // Combine full-text conditions with other sanitized conditions in this level
                     if (fullTextConditions.length > 0) {
-                        sanitizedCondition[Op.and] = sanitizedCondition[Op.and]
-                            ? [
-                                  ...sanitizedCondition[Op.and],
-                                  ...fullTextConditions,
-                              ]
-                            : fullTextConditions;
+                        sanitizedCondition[Op.and] = sanitizedCondition[Op.and] ? [...sanitizedCondition[Op.and], ...fullTextConditions] : fullTextConditions;
                     }
                 }
 
                 // Recursively apply to nested objects/operators
                 for (const [key, value] of Object.entries(condition)) {
                     if (key in sequelizeOperators) {
-                        sanitizedCondition[sequelizeOperators[key]] =
-                            sanitizeCondition(value, sequelize);
+                        sanitizedCondition[sequelizeOperators[key]] = sanitizeCondition(value, sequelize);
                     } else {
-                        sanitizedCondition[key] = sanitizeCondition(
-                            value,
-                            sequelize,
-                        );
+                        sanitizedCondition[key] = sanitizeCondition(value, sequelize);
                     }
                 }
                 return sanitizedCondition;
@@ -196,9 +172,7 @@ export class QnatkService {
     async findAndCountAll(baseModel: string, options?: any) {
         const sanitizedOptions = this.sanitizeOptions(options);
         // console.log('sanitizedOptions', sanitizedOptions);
-        return this.sequelize
-            .model(baseModel)
-            .findAndCountAll({ ...sanitizedOptions, distinct: true });
+        return this.sequelize.model(baseModel).findAndCountAll({ ...sanitizedOptions, distinct: true });
     }
 
     async getActions(baseModel: string) {
@@ -219,12 +193,7 @@ export class QnatkService {
         }
     }
 
-    async findOneFormActionInfo(
-        baseModel: string,
-        action: Partial<ActionDTO>,
-        data: any,
-        transaction?: Transaction,
-    ) {
+    async findOneFormActionInfo(baseModel: string, action: Partial<ActionDTO>, data: any, transaction?: Transaction) {
         const where = {};
         if (action.loadBy) {
             where[action.loadBy] = data[action.loadBy];
@@ -240,27 +209,16 @@ export class QnatkService {
 
         if (!model)
             throw new ValidationException({
-                Error: [
-                    `Record not found for model ${baseModel} with ${JSON.stringify(
-                        where,
-                    )}`,
-                ],
+                Error: [`Record not found for model ${baseModel} with ${JSON.stringify(where)}`],
             });
 
         return model;
     }
 
-    async findAllFormActionInfo(
-        baseModel: string,
-        action: ActionDTO,
-        data_user: any,
-        transaction?: Transaction,
-    ) {
+    async findAllFormActionInfo(baseModel: string, action: ActionDTO, data_user: any, transaction?: Transaction) {
         const where = {};
         if (action.loadBy) {
-            where[action.loadBy] = data_user.data.records.map(
-                (record) => record[action.loadBy],
-            );
+            where[action.loadBy] = data_user.data.records.map((record) => record[action.loadBy]);
         } else {
             throw new ValidationException({
                 Error: [`loadBy not found`],
@@ -272,13 +230,7 @@ export class QnatkService {
         });
     }
 
-    async updateByPk(
-        baseModel: string,
-        primaryKey: string | number,
-        primaryField: string,
-        body: any,
-        transaction: Transaction,
-    ) {
+    async updateByPk(baseModel: string, primaryKey: string | number, primaryField: string, body: any, transaction: Transaction) {
         try {
             return await this.sequelize.model(baseModel).update(body, {
                 where: {
