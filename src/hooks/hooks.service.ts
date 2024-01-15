@@ -19,7 +19,8 @@ export class HooksService {
                 this.hooks[event] = [];
             }
             this.hooks[event].push(hook);
-            this.hooks[event].sort((a, b) => a.priority - b.priority);
+            if (this.options.followPriorityOrder)
+                this.hooks[event].sort((a, b) => a.priority - b.priority);
         }
     }
 
@@ -79,7 +80,9 @@ export class HooksService {
 
         for (const difference of differences) {
             // Filter out numeric values from the path
-            const filteredPath = difference.path.filter((pathSegment: any) => isNaN(pathSegment));
+            const filteredPath = difference.path.filter((pathSegment: any) =>
+                isNaN(pathSegment),
+            );
 
             // Add the kind of change to the event key
             const eventKey = `ON_${baseElement}_${filteredPath.join('_')}_${
@@ -118,14 +121,26 @@ export class HooksService {
         // if (this.isObjectId(newObj)) newObj = newObj.toString();
 
         if (Array.isArray(oldObj) && Array.isArray(newObj)) {
-            if (JSON.stringify(oldObj) === JSON.stringify(newObj)) return result;
+            if (JSON.stringify(oldObj) === JSON.stringify(newObj))
+                return result;
             const maxLen = Math.max(oldObj.length, newObj.length);
             for (let i = 0; i < maxLen; i++) {
                 if (!oldObj.hasOwnProperty(i) || oldObj[i] !== newObj[i]) {
-                    result.push(...this.objectDifferences(oldObj[i], newObj[i], path.concat(i)));
+                    result.push(
+                        ...this.objectDifferences(
+                            oldObj[i],
+                            newObj[i],
+                            path.concat(i),
+                        ),
+                    );
                 }
             }
-        } else if (typeof oldObj === 'object' && oldObj !== null && typeof newObj === 'object' && newObj !== null) {
+        } else if (
+            typeof oldObj === 'object' &&
+            oldObj !== null &&
+            typeof newObj === 'object' &&
+            newObj !== null
+        ) {
             const oldKeys = new Set(Object.keys(oldObj));
             const newKeys = new Set(Object.keys(newObj));
             let isObjectChanged = false;
@@ -134,10 +149,18 @@ export class HooksService {
                 const newPath = path.concat(key);
 
                 if (newKeys.has(key)) {
-                    if (typeof newObj[key] === 'object' && newObj[key] !== null) {
-                        const subDiffs = this.objectDifferences(oldObj[key], newObj[key], newPath);
+                    if (
+                        typeof newObj[key] === 'object' &&
+                        newObj[key] !== null
+                    ) {
+                        const subDiffs = this.objectDifferences(
+                            oldObj[key],
+                            newObj[key],
+                            newPath,
+                        );
                         result.push(...subDiffs);
-                        isObjectChanged = isObjectChanged || subDiffs.length > 0;
+                        isObjectChanged =
+                            isObjectChanged || subDiffs.length > 0;
                     } else if (oldObj[key] !== newObj[key]) {
                         result.push({
                             kind: 'E',
