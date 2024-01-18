@@ -25,9 +25,9 @@ export class HooksService {
     }
 
     validateHookName(hookName: string): boolean {
-        if (!this.hookNameConstants.has(hookName)) {
-            throw new Error(`Invalid hook name: ${hookName}`);
-        }
+        // if (!this.hookNameConstants.has(hookName)) {
+        //     throw new Error(`Invalid hook name: ${hookName}`);
+        // }
         return true;
     }
 
