@@ -116,8 +116,9 @@ export class ActionDTO {
     @IsString()
     baseModel?: string;
 
-    @IsNotEmpty()
-    label?: string;
+    @IsStringOrObject({ message: 'label must be a string or an object' })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    label?: string | Record<string, any>;
 
     @IsOptional()
     @IsString()
