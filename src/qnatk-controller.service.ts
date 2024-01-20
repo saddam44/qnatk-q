@@ -164,6 +164,9 @@ export class QnatkControllerService {
                 `execute:${action}:${baseModel}`,
                 validated_data,
                 t,
+                undefined,
+                undefined,
+                true,
             );
 
             return await this.hooksService.triggerHooks(

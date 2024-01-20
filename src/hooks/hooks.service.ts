@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { HookInterface } from './hook.interface';
 import { QnatkModuleOptions } from './qnatk-module.options';
 import { Transaction } from 'sequelize';
+import { ValidationException } from '../Exceptions/ValidationException';
 
 @Injectable()
 export class HooksService {
@@ -37,6 +38,7 @@ export class HooksService {
         transaction: Transaction,
         extraData?: any,
         uiPassedExtraData?: Record<string, any>,
+        mustRun?: boolean,
     ): Promise<T> {
         const eventsArray = Array.isArray(events) ? events : [events];
         let previousResult = originalData;
@@ -51,6 +53,12 @@ export class HooksService {
                         extraData, // This is any extra info passed when the hooks were triggered
                         uiPassedExtraData, // This is UI passed extra data
                     );
+                }
+            } else {
+                if (mustRun) {
+                    throw new ValidationException({
+                        [event]: [`No hook found for event: ${event}`],
+                    });
                 }
             }
         }
