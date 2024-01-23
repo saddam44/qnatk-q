@@ -137,7 +137,7 @@ export class ActionDTO {
     description: string;
 
     @IsNotEmpty()
-    mode: string;
+    mode: 'NoRecord' | 'SingleRecord' | 'MultiRecord';
 
     @IsObject()
     @ValidateNested()
