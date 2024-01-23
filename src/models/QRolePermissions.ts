@@ -6,14 +6,19 @@ import QEntityActions from './QEntityActions';
     tableName: 'q_permissions',
     timestamps: false,
 })
-export default class QPermissions extends Model<QPermissions> {
+export default class QRolePermissions extends Model<QRolePermissions> {
     @ForeignKey(() => QEntityActions)
     @Column
-    entity_action_id: string;
+    entity_action_id: number;
 
     @ForeignKey(() => QRoles)
     @Column
-    role_id: string;
+    role_id: number;
+
+    @Column({
+        defaultValue: 0,
+    })
+    status: number;
 
     @Column
     from_ips: string;

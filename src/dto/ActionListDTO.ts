@@ -11,6 +11,7 @@ import {
     ValidatorConstraintInterface,
     registerDecorator,
     ValidationOptions,
+    IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -147,9 +148,9 @@ export class ActionDTO {
     @IsOptional()
     loadBy?: string;
 
-    @IsArray()
-    @IsString({ each: true })
-    roles: string[];
+    @IsOptional()
+    @IsBoolean()
+    abstract?: boolean;
 
     @IsOptional()
     @IsObject()
