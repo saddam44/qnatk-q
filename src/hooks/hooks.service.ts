@@ -57,7 +57,12 @@ export class HooksService {
             } else {
                 if (mustRun) {
                     throw new ValidationException({
-                        [event]: [`No hook found for event: ${event}`],
+                        [event]: [
+                            `No hook found at place: ${
+                                event.split(':').reverse().join('/') +
+                                '-file.service.hook.ts'
+                            }`,
+                        ],
                     });
                 }
             }
