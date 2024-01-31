@@ -18,13 +18,52 @@ export class QnatkControllerService {
     async list(
         baseModel: string,
         body: QnatkListDTO,
+        hookName?: string,
     ): Promise<Model<any, any>[]> {
         return await this.qnatkService.findAll(baseModel, body);
     }
 
-    async listAndCount(baseModel: string, body: QnatkListDTO) {
+    async listAndCount<UserDTO = any>(
+        baseModel: string,
+        body: QnatkListDTO,
+        user: UserDTO,
+        hookName?: string,
+    ) {
+        const t = undefined;
+        const validated_data = await this.hooksService.triggerHooks(
+            `before:lac-${hookName}:${baseModel}`,
+            {
+                fetchOptions: body,
+                user,
+            },
+            t,
+        );
+
+        let executedData: { rows: any[]; count: number } = {
+            rows: [],
+            count: 0,
+        };
+        if (this.hooksService.hasHook(`execute:lac-${hookName}:${baseModel}`)) {
+            executedData = await this.hooksService.triggerHooks(
+                `execute:lac-${hookName}:${baseModel}`,
+                validated_data,
+                t,
+            );
+        } else {
+            executedData = await this.qnatkService.findAndCountAll(
+                baseModel,
+                body,
+            );
+        }
+
+        executedData = await this.hooksService.triggerHooks(
+            `after:lac-${hookName}:${baseModel}`,
+            executedData,
+            t,
+        );
+
         return {
-            ...(await this.qnatkService.findAndCountAll(baseModel, body)),
+            ...executedData,
             actions: await this.qnatkService.getActions(baseModel),
         };
     }

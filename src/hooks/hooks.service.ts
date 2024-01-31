@@ -32,6 +32,11 @@ export class HooksService {
         return true;
     }
 
+    hasHook(hookName: string): boolean {
+        this.validateHookName(hookName);
+        return this.hooks[hookName] && this.hooks[hookName].length > 0;
+    }
+
     async triggerHooks<T = any>(
         events: string | string[],
         originalData: any,

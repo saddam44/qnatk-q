@@ -1,5 +1,6 @@
 import { Model } from 'sequelize-typescript';
-import { ActionDTO, ActionListDTO } from './ActionListDTO';
+import { ActionDTO } from './ActionListDTO';
+import { FindOptions } from 'sequelize';
 
 export interface BeforeHookParams<DataDTO, UserDTO = any> {
     data: DataDTO;
@@ -15,6 +16,20 @@ export interface BeforeActionExecuteParams<
     data: RecordDTO;
     user: UserDTO;
     modelInstance: ModelType;
+}
+
+export interface ILACBefore<UserDTO = any> {
+    fetchOptions: FindOptions;
+    user: UserDTO;
+}
+export interface ILACExecute<UserDTO = any> {
+    data: FindOptions;
+    user: UserDTO;
+}
+
+export interface ILACAfter<ModelType extends Model> {
+    count: number;
+    rows: ModelType[];
 }
 
 export interface ActionExecuteParams<

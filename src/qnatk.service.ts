@@ -62,7 +62,19 @@ export class QnatkService {
     }
 
     sanitizeAttributes(attributes: any) {
-        return attributes;
+        return attributes.map((attr) => {
+            if (typeof attr === 'object' && attr.fn && attr.col) {
+                // Handle function call
+                return [
+                    this.sequelize.fn(attr.fn, this.sequelize.col(attr.col)),
+                    attr.as,
+                ];
+            } else if (typeof attr === 'object' && attr.literal) {
+                // Handle literal
+                return this.sequelize.literal(attr.literal);
+            }
+            return attr;
+        });
     }
 
     // Recursive function to traverse and sanitize options
