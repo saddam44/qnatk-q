@@ -58,13 +58,15 @@ export class QnatkControllerService {
 
         executedData = await this.hooksService.triggerHooks(
             `after:lac-${hookName}:${baseModel}`,
-            executedData,
+            { ...executedData, fetchOptions: body, user },
             t,
         );
 
         return {
             ...executedData,
             actions: await this.qnatkService.getActions(baseModel),
+            fetchOptions: undefined,
+            user: undefined,
         };
     }
 

@@ -12,7 +12,7 @@ export class QnatkService {
         private modelActions: Record<string, ActionListDTO>[] = [],
     ) {}
 
-    private sanitizeOptions(options: any) {
+    public sanitizeOptions(options: any) {
         const { limit, offset, sortBy, sortByDescending, ...modelOptions } =
             options;
 

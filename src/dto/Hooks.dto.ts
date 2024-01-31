@@ -23,13 +23,16 @@ export interface ILACBefore<UserDTO = any> {
     user: UserDTO;
 }
 export interface ILACExecute<UserDTO = any> {
-    data: FindOptions;
+    fetchOptions: FindOptions;
     user: UserDTO;
 }
 
-export interface ILACAfter<ModelType extends Model> {
+export interface ILACAfter<ModelType extends Model, UserDTO = any> {
     count: number;
     rows: ModelType[];
+    fetchOptions: FindOptions;
+    user: UserDTO;
+    [key: string]: any;
 }
 
 export interface ActionExecuteParams<
