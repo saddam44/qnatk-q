@@ -15,12 +15,46 @@ export class QnatkControllerService {
         @Inject('MODEL_ACTIONS') private modelActions: ActionListDTO,
     ) {}
 
-    async list(
+    async list<UserDTO = any>(
         baseModel: string,
         body: QnatkListDTO,
+        user: UserDTO,
         hookName?: string,
     ): Promise<Model<any, any>[]> {
-        return await this.qnatkService.findAll(baseModel, body);
+        const t = undefined;
+        const hookedOptions = await this.hooksService.triggerHooks(
+            `before:list-${hookName}:${baseModel}`,
+            {
+                fetchOptions: body,
+                user,
+            },
+            t,
+        );
+
+        let executedData = [];
+
+        if (
+            this.hooksService.hasHook(`execute:list-${hookName}:${baseModel}`)
+        ) {
+            executedData = await this.hooksService.triggerHooks(
+                `execute:list-${hookName}:${baseModel}`,
+                hookedOptions,
+                t,
+            );
+        } else {
+            executedData = await this.qnatkService.findAll(
+                baseModel,
+                hookedOptions.fetchOptions,
+            );
+        }
+
+        const finalData = await this.hooksService.triggerHooks(
+            `after:list-${hookName}:${baseModel}`,
+            { data: executedData, fetchOptions: body, user },
+            t,
+        );
+
+        return finalData.data;
     }
 
     async listAndCount<UserDTO = any>(
