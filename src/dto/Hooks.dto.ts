@@ -1,6 +1,7 @@
 import { Model } from 'sequelize-typescript';
 import { ActionDTO } from './ActionListDTO';
 import { FindOptions } from 'sequelize';
+import { Express } from 'express';
 
 export interface BeforeHookParams<DataDTO, UserDTO = any> {
     data: DataDTO;

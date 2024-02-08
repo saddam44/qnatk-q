@@ -6,6 +6,8 @@ import { QnatkListDTO } from './dto/QnatkListDTO';
 import { Transaction } from 'sequelize';
 import { ActionListDTO } from './dto/ActionListDTO';
 
+import { Express } from 'express';
+
 @Injectable()
 export class QnatkControllerService {
     constructor(
