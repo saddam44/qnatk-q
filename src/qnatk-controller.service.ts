@@ -207,6 +207,7 @@ export class QnatkControllerService {
         action: string,
         data: any,
         user: UserDTO,
+        skipModelLoad?: boolean,
         transaction?: Transaction, // Add an optional transaction parameter
     ) {
         // console.log(this.modelActions[baseModel]);
@@ -220,8 +221,10 @@ export class QnatkControllerService {
                 );
             }
 
-            const model_instance =
-                await this.qnatkService.findOneFormActionInfo(
+            let model_instance = undefined;
+
+            if (!skipModelLoad)
+                model_instance = await this.qnatkService.findOneFormActionInfo(
                     baseModel,
                     actionObject,
                     data,
