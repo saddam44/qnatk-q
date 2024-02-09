@@ -8,6 +8,8 @@ import { AutoRegisterHooks } from './hooks/auto-register.hook';
 import { QnatkService } from './qnatk.service';
 import { QnatkControllerService } from './qnatk-controller.service';
 import { ActionListDTO } from './dto/ActionListDTO';
+import { QnatkAIService } from './qnatkAutoImporter.service';
+
 
 @Global()
 @Module({
@@ -46,6 +48,7 @@ export class QnatkModule {
         },
         HooksService,
         QnatkService,
+        QnatkAIService,
         QnatkControllerService,
         ...additionalProviders,
       ],

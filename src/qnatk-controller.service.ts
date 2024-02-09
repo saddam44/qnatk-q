@@ -5,6 +5,7 @@ import { HooksService } from './hooks/hooks.service';
 import { QnatkListDTO } from './dto/QnatkListDTO';
 import { Transaction } from 'sequelize';
 import { ActionListDTO } from './dto/ActionListDTO';
+import { QnatkAIService } from './qnatkAutoImporter.service';
 
 import { Express } from 'express';
 
@@ -13,6 +14,7 @@ export class QnatkControllerService {
     constructor(
         private readonly qnatkService: QnatkService,
         private readonly hooksService: HooksService,
+        private readonly qnatkAIService : QnatkAIService,
         private sequelize: Sequelize,
         @Inject('MODEL_ACTIONS') private modelActions: ActionListDTO,
     ) {}
@@ -451,6 +453,60 @@ export class QnatkControllerService {
             ...final_data,
             modelInstance: final_data.modelInstance,
             message: `Action Delete executed successfully`,
+        };
+    }
+
+    async autoImporter<UserDTO = any>(
+        baseModel: string,
+        data: any,
+        user: UserDTO,
+        // models: any,
+        transaction?: Transaction,
+    ) {
+        const execute = async (t: Transaction) => {
+            //var item_orig = JSON.parse(JSON.stringify(data));
+            const validated_data = await this.hooksService.triggerHooks(
+                `beforeCreate:${baseModel}`,
+                { data, user },
+                t,
+            );
+            let data_returned = [];
+            // data =data.data;
+            // Parse the JSON string into an array
+            data = JSON.parse(data.data);
+            const models = this.sequelize.models; 
+
+            for (let i = 0; i < data.length; i++) {
+                const obj = data[i];
+                console.log("call nexted auto importer obj in loop", obj);
+                 let data_returned_res = await this.qnatkAIService.autoImportItem(models[baseModel], obj, models, '', '', t);
+                 data_returned.push(data_returned_res);
+            }    
+            return await this.hooksService.triggerHooks(
+                `afterCreate:${baseModel}`,
+                {
+                    ...validated_data,
+                    modelInstance: data_returned,
+                },
+                t,
+            );
+        };
+
+        let final_data;
+        if (transaction) {
+            // Use the existing transaction
+            final_data = await execute(transaction);
+        } else {
+            // Create a new transaction
+            final_data = await this.sequelize.transaction(execute).catch((err) => {
+                console.log(err);
+                throw err;
+            });
+        }
+
+        return {
+            ...final_data,
+            message: `Action executed successfully`,
         };
     }
 }
